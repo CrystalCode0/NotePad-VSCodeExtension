@@ -9,6 +9,7 @@ tsconfig.json
 esbuild.js
 **/*.map
 **/*.ts
+node_modules/**
 !dist/**
 !templates/**
 !webview-ui/**
