@@ -1,0 +1,157 @@
+{
+  "name": "notepad-vscode",
+  "displayName": "NotePad",
+  "description": "Code-aware notes for developers — rich editor, code snapshots, templates, smart tags, all inside a beautiful sidebar UI",
+  "version": "0.1.0",
+  "publisher": "CrystalCode0",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "notes",
+    "notepad",
+    "markdown",
+    "sidebar",
+    "productivity",
+    "code-snippets",
+    "templates"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CrystalCode0/NotePad-VSCodeExtension.git"
+  },
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "icon": "media/logo.png",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "notepad-sidebar",
+          "title": "NotePad",
+          "icon": "media/notepad-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "notepad-sidebar": [
+        {
+          "type": "webview",
+          "id": "notepad-explorer",
+          "name": "Notes Explorer"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "notepad.createFolder",
+        "title": "NotePad: New Folder",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "notepad.createNote",
+        "title": "NotePad: New Note",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "notepad.createNoteFromTemplate",
+        "title": "NotePad: New Note from Template",
+        "icon": "$(file-symlink-file)"
+      },
+      {
+        "command": "notepad.renameItem",
+        "title": "NotePad: Rename"
+      },
+      {
+        "command": "notepad.deleteItem",
+        "title": "NotePad: Delete",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "notepad.pinItem",
+        "title": "NotePad: Pin/Unpin"
+      },
+      {
+        "command": "notepad.searchNotes",
+        "title": "NotePad: Search Notes",
+        "icon": "$(search)"
+      },
+      {
+        "command": "notepad.quickCapture",
+        "title": "NotePad: Quick Capture",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "notepad.insertSnapshot",
+        "title": "NotePad: Insert Code Snapshot"
+      },
+      {
+        "command": "notepad.filterByTag",
+        "title": "NotePad: Filter by Tag"
+      },
+      {
+        "command": "notepad.refreshExplorer",
+        "title": "NotePad: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "notepad.focusMode",
+        "title": "NotePad: Toggle Focus Mode"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "notepad.quickCapture",
+        "key": "ctrl+shift+n",
+        "mac": "cmd+shift+n"
+      },
+      {
+        "command": "notepad.createNote",
+        "key": "ctrl+alt+n",
+        "mac": "cmd+alt+n"
+      }
+    ],
+    "configuration": {
+      "title": "NotePad",
+      "properties": {
+        "notepad.autoSaveDelay": {
+          "type": "number",
+          "default": 1000,
+          "description": "Auto-save delay in milliseconds after last keystroke"
+        },
+        "notepad.defaultNoteFormat": {
+          "type": "string",
+          "default": "md",
+          "enum": [
+            "md",
+            "txt"
+          ],
+          "description": "Default file format for new notes"
+        },
+        "notepad.showGitBranch": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-tag notes with current git branch"
+        },
+        "notepad.quickCaptureFolder": {
+          "type": "string",
+          "default": "Quick Notes",
+          "description": "Folder name for quick capture notes"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build": "node esbuild.js",
+    "package": "node esbuild.js --production",
+    "lint": "eslint src --ext ts",
+    "test": "tsc -p tsconfig.test.json && node out/test/services.test.js"
+  },
+  "devDependencies": {}
+}

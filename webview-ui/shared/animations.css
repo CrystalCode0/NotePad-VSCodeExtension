@@ -1,0 +1,67 @@
+/* ─── Micro-Animations ───────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(4px); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; max-height: 0; }
+  to   { opacity: 1; max-height: 500px; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes savePulse {
+  0% { color: var(--np-success); }
+  50% { color: var(--np-text-secondary); }
+  100% { color: var(--np-success); }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--np-transition-normal) forwards;
+}
+
+.animate-fade-out {
+  animation: fadeOut var(--np-transition-normal) forwards;
+}
+
+.animate-slide-down {
+  animation: slideDown var(--np-transition-slow) ease forwards;
+  overflow: hidden;
+}
+
+.animate-pulse {
+  animation: pulse 1.5s ease infinite;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-save-pulse {
+  animation: savePulse 0.6s ease;
+}

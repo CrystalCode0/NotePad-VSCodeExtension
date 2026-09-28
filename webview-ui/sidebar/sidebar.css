@@ -1,0 +1,671 @@
+/* ─── Sidebar Styles ─────────────────────────────────────────── */
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── Header ─────────────────────────────────────────────────── */
+
+.notepad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--np-spacing-sm) var(--np-spacing-md);
+  border-bottom: 1px solid var(--np-border);
+  min-height: 36px;
+  flex-shrink: 0;
+}
+
+.notepad-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--np-text-secondary);
+}
+
+.notepad-header-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--np-radius-sm);
+  color: var(--np-text-secondary);
+  transition: background var(--np-transition-fast), color var(--np-transition-fast);
+}
+
+.icon-btn:hover {
+  background: var(--np-bg-hover);
+  color: var(--np-text-primary);
+}
+
+/* ─── Search ─────────────────────────────────────────────────── */
+
+.search-container {
+  display: flex;
+  align-items: center;
+  padding: var(--np-spacing-xs) var(--np-spacing-md);
+  gap: var(--np-spacing-xs);
+  border-bottom: 1px solid var(--np-border);
+  animation: fadeIn var(--np-transition-normal) forwards;
+}
+
+.search-input {
+  flex: 1;
+  padding: var(--np-spacing-xs) var(--np-spacing-sm);
+  background: var(--np-bg-input);
+  border: 1px solid var(--np-border-input);
+  border-radius: var(--np-radius-sm);
+  color: var(--np-text-input);
+  transition: border-color var(--np-transition-fast);
+}
+
+.search-input::placeholder {
+  color: var(--np-text-placeholder);
+}
+
+.search-input:focus {
+  border-color: var(--np-border-focus);
+  outline: none;
+}
+
+.search-close {
+  width: 22px;
+  height: 22px;
+}
+
+/* ─── Sections ───────────────────────────────────────────────── */
+
+.section {
+  flex-shrink: 0;
+}
+
+.tree-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--np-spacing-xs);
+  padding: var(--np-spacing-sm) var(--np-spacing-md);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--np-text-secondary);
+  border-bottom: 1px solid var(--np-border);
+}
+
+/* ─── Tree Container ─────────────────────────────────────────── */
+
+.tree-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--np-spacing-xs) 0;
+}
+
+/* ─── Tree Items ─────────────────────────────────────────────── */
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  padding: 3px var(--np-spacing-md);
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--np-transition-fast);
+  position: relative;
+  min-height: 24px;
+}
+
+.tree-item:hover {
+  background: var(--np-bg-hover);
+}
+
+.tree-item.selected {
+  background: var(--np-bg-active);
+  color: var(--np-text-active);
+}
+
+.tree-item-indent {
+  flex-shrink: 0;
+}
+
+.tree-item-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  transition: transform var(--np-transition-fast);
+  font-size: 10px;
+  color: var(--np-text-secondary);
+}
+
+.tree-item-chevron.expanded {
+  transform: rotate(90deg);
+}
+
+.tree-item-chevron.hidden {
+  visibility: hidden;
+}
+
+.tree-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: var(--np-spacing-xs);
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.tree-item-icon.folder { color: var(--np-warning); }
+.tree-item-icon.note { color: var(--np-accent); }
+
+.tree-item-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.tree-item-time {
+  font-size: 11px;
+  color: var(--np-text-secondary);
+  margin-left: var(--np-spacing-sm);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--np-transition-fast);
+}
+
+.tree-item:hover .tree-item-time {
+  opacity: 1;
+}
+
+.tree-item-actions {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  padding-left: 4px;
+}
+
+.tree-item:hover .tree-item-actions {
+  display: flex;
+}
+
+.tree-item-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--np-text-secondary);
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: var(--np-radius-sm);
+  font-size: 11px;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity var(--np-transition-fast), background var(--np-transition-fast);
+}
+
+.tree-item-action-btn:hover {
+  opacity: 1;
+  background: var(--np-bg-hover);
+  color: var(--np-text-primary);
+}
+
+.tree-item-children {
+  overflow: hidden;
+  transition: max-height var(--np-transition-slow) ease;
+}
+
+.tree-item-children.collapsed {
+  max-height: 0 !important;
+}
+
+/* ─── Pinned Section ─────────────────────────────────────────── */
+
+.pinned-section {
+  border-bottom: 1px solid var(--np-border);
+}
+
+.pinned-list {
+  padding: var(--np-spacing-xs) 0;
+}
+
+.pinned-item {
+  display: flex;
+  align-items: center;
+  padding: 3px var(--np-spacing-md);
+  cursor: pointer;
+  transition: background var(--np-transition-fast);
+  min-height: 24px;
+}
+
+.pinned-item:hover {
+  background: var(--np-bg-hover);
+}
+
+.pinned-item-icon {
+  margin-right: var(--np-spacing-xs);
+  color: var(--np-warning);
+  font-size: 12px;
+}
+
+.pinned-item-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+/* ─── Tag Cloud ──────────────────────────────────────────────── */
+
+.tag-section {
+  border-top: 1px solid var(--np-border);
+  max-height: 80px;
+  flex-shrink: 0;
+}
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--np-spacing-xs);
+  padding: var(--np-spacing-xs) var(--np-spacing-md) var(--np-spacing-sm);
+  overflow-y: auto;
+  max-height: 50px;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px var(--np-spacing-sm);
+  font-size: 11px;
+  border-radius: 10px;
+  background: var(--np-badge-bg);
+  color: var(--np-badge-fg);
+  cursor: pointer;
+  transition: background var(--np-transition-fast), transform var(--np-transition-fast);
+}
+
+.tag-badge:hover {
+  background: var(--np-btn-bg);
+  transform: scale(1.05);
+}
+
+.tag-badge.active {
+  background: var(--np-btn-bg);
+  color: var(--np-btn-fg);
+}
+
+.tag-count {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* ─── Empty State ────────────────────────────────────────────── */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--np-spacing-xl);
+  text-align: center;
+  animation: fadeIn var(--np-transition-slow) forwards;
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: var(--np-spacing-md);
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--np-text-primary);
+  margin-bottom: var(--np-spacing-xs);
+}
+
+.empty-subtext {
+  font-size: 12px;
+  color: var(--np-text-secondary);
+  margin-bottom: var(--np-spacing-lg);
+}
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--np-spacing-xs);
+  padding: var(--np-spacing-xs) var(--np-spacing-md);
+  background: var(--np-btn-bg);
+  color: var(--np-btn-fg);
+  border-radius: var(--np-radius-sm);
+  font-size: 12px;
+  transition: background var(--np-transition-fast);
+}
+
+.primary-btn:hover {
+  background: var(--np-btn-hover);
+}
+
+.secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--np-spacing-xs);
+  padding: var(--np-spacing-xs) var(--np-spacing-md);
+  background: var(--np-btn-secondary-bg);
+  color: var(--np-btn-secondary-fg);
+  border-radius: var(--np-radius-sm);
+  font-size: 12px;
+  transition: background var(--np-transition-fast);
+}
+
+.danger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--np-spacing-xs);
+  padding: var(--np-spacing-xs) var(--np-spacing-md);
+  background: var(--np-danger);
+  color: #fff;
+  border-radius: var(--np-radius-sm);
+  font-size: 12px;
+  transition: background var(--np-transition-fast), opacity var(--np-transition-fast);
+}
+
+.danger-btn:hover {
+  opacity: 0.9;
+}
+
+/* ─── Context Menu ───────────────────────────────────────────── */
+
+.context-menu {
+  position: fixed;
+  background: var(--vscode-menu-background, var(--np-bg-secondary));
+  border: 1px solid var(--vscode-menu-border, var(--np-border));
+  border-radius: var(--np-radius-md);
+  padding: var(--np-spacing-xs) 0;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  animation: fadeIn 100ms ease forwards;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--np-spacing-sm);
+  padding: var(--np-spacing-xs) var(--np-spacing-md);
+  cursor: pointer;
+  font-size: 13px;
+  transition: background var(--np-transition-fast);
+}
+
+.context-menu-item:hover {
+  background: var(--vscode-menu-selectionBackground, var(--np-bg-active));
+  color: var(--vscode-menu-selectionForeground, var(--np-text-active));
+}
+
+.context-menu-separator {
+  height: 1px;
+  background: var(--np-border);
+  margin: var(--np-spacing-xs) 0;
+}
+
+/* ─── Inline Input ───────────────────────────────────────────── */
+
+.inline-input-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.inline-input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 22px;
+  box-sizing: border-box;
+  padding: 2px var(--np-spacing-sm);
+  background: var(--np-bg-input);
+  border: 1px solid var(--np-border-focus);
+  border-radius: var(--np-radius-sm);
+  color: var(--np-text-input);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.inline-input:focus {
+  outline: none;
+}
+
+.tree-item.inline-create-row {
+  cursor: default;
+  background: var(--np-bg-hover);
+}
+
+/* ─── Confirmation Dialog ────────────────────────────────────── */
+
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 150ms ease forwards;
+}
+
+.dialog {
+  background: var(--np-bg-secondary);
+  border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-lg);
+  padding: var(--np-spacing-lg);
+  max-width: 280px;
+  width: 90%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.dialog-message {
+  font-size: 13px;
+  color: var(--np-text-primary);
+  margin-bottom: var(--np-spacing-lg);
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--np-spacing-sm);
+}
+
+/* ─── Codicon Font ───────────────────────────────────────────── */
+/* VS Code provides codicons via CSS classes */
+
+.codicon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.codicon-search::before { content: '🔍'; }
+.codicon-new-folder::before { content: '📁'; }
+.codicon-new-file::before { content: '📄'; }
+.codicon-refresh::before { content: '🔄'; }
+.codicon-close::before { content: '✕'; }
+.codicon-pinned::before { content: '📌'; }
+.codicon-folder-library::before { content: '📚'; }
+.codicon-tag::before { content: '🏷️'; }
+.codicon-edit::before { content: '✏️'; }
+.codicon-trash::before { content: '🗑️'; }
+.codicon-pin::before { content: '📌'; }
+.codicon-chevron-right::before { content: '▶'; }
+
+/* ─── Sort Select ────────────────────────────────────────────── */
+
+.sort-select {
+  background: var(--np-bg-secondary);
+  border: 1px solid var(--np-border);
+  color: var(--np-text-secondary);
+  font-size: 11px;
+  border-radius: var(--np-radius-sm);
+  padding: 1px 4px;
+  outline: none;
+  cursor: pointer;
+}
+
+.sort-select:hover {
+  border-color: var(--np-border-focus);
+  color: var(--np-text-primary);
+}
+
+/* ─── Timeline Section ───────────────────────────────────────── */
+
+.timeline-container {
+  padding: var(--np-spacing-xs) 0;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.timeline-group {
+  margin-bottom: var(--np-spacing-xs);
+}
+
+.timeline-group-header {
+  padding: 2px var(--np-spacing-md);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--np-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px var(--np-spacing-md);
+  cursor: pointer;
+  transition: background var(--np-transition-fast);
+}
+
+.timeline-item:hover {
+  background: var(--np-bg-hover);
+}
+
+.timeline-item-title {
+  font-size: 12px;
+  color: var(--np-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-item-time {
+  font-size: 10px;
+  color: var(--np-text-secondary);
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+/* ─── Template Picker Modal ──────────────────────────────────── */
+
+.template-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+}
+
+.template-modal {
+  background: var(--np-bg-secondary);
+  border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-lg);
+  padding: var(--np-spacing-md);
+  width: 92%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.template-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--np-text-primary);
+  margin-bottom: var(--np-spacing-sm);
+  padding-bottom: var(--np-spacing-xs);
+  border-bottom: 1px solid var(--np-border);
+}
+
+.template-list {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--np-spacing-xs);
+}
+
+.template-card {
+  padding: var(--np-spacing-sm);
+  border: 1px solid var(--np-border);
+  border-radius: var(--np-radius-md);
+  cursor: pointer;
+  transition: all var(--np-transition-fast);
+  background: var(--np-bg-primary);
+}
+
+.template-card:hover {
+  border-color: var(--np-accent);
+  background: var(--np-bg-hover);
+}
+
+.template-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--np-text-primary);
+  margin-bottom: 2px;
+}
+
+.template-card-desc {
+  font-size: 11px;
+  color: var(--np-text-secondary);
+  line-height: 1.4;
+}

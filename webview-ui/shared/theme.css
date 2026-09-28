@@ -1,0 +1,58 @@
+/* ─── VS Code Theme Variables ────────────────────────────────── */
+/* These CSS custom properties map to VS Code's built-in theme tokens.
+   Using these ensures the UI adapts to any VS Code color theme. */
+
+:root {
+  /* Surfaces */
+  --np-bg-primary: var(--vscode-sideBar-background, #1e1e1e);
+  --np-bg-secondary: var(--vscode-editor-background, #252526);
+  --np-bg-hover: var(--vscode-list-hoverBackground, #2a2d2e);
+  --np-bg-active: var(--vscode-list-activeSelectionBackground, #094771);
+  --np-bg-input: var(--vscode-input-background, #3c3c3c);
+
+  /* Text */
+  --np-text-primary: var(--vscode-foreground, #cccccc);
+  --np-text-secondary: var(--vscode-descriptionForeground, #808080);
+  --np-text-active: var(--vscode-list-activeSelectionForeground, #ffffff);
+  --np-text-input: var(--vscode-input-foreground, #cccccc);
+  --np-text-placeholder: var(--vscode-input-placeholderForeground, #777777);
+
+  /* Borders */
+  --np-border: var(--vscode-sideBar-border, var(--vscode-panel-border, #2b2b2b));
+  --np-border-input: var(--vscode-input-border, #3c3c3c);
+  --np-border-focus: var(--vscode-focusBorder, #007acc);
+
+  /* Buttons */
+  --np-btn-bg: var(--vscode-button-background, #007acc);
+  --np-btn-fg: var(--vscode-button-foreground, #ffffff);
+  --np-btn-hover: var(--vscode-button-hoverBackground, #005a9e);
+  --np-btn-secondary-bg: var(--vscode-button-secondaryBackground, #3a3d41);
+  --np-btn-secondary-fg: var(--vscode-button-secondaryForeground, #cccccc);
+
+  /* Accents */
+  --np-accent: var(--vscode-textLink-foreground, #3794ff);
+  --np-danger: var(--vscode-errorForeground, #f48771);
+  --np-success: var(--vscode-terminal-ansiGreen, #89d185);
+  --np-warning: var(--vscode-editorWarning-foreground, #cca700);
+
+  /* Badges */
+  --np-badge-bg: var(--vscode-badge-background, #4d4d4d);
+  --np-badge-fg: var(--vscode-badge-foreground, #ffffff);
+
+  /* Spacing */
+  --np-spacing-xs: 4px;
+  --np-spacing-sm: 8px;
+  --np-spacing-md: 12px;
+  --np-spacing-lg: 16px;
+  --np-spacing-xl: 24px;
+
+  /* Border radius */
+  --np-radius-sm: 3px;
+  --np-radius-md: 6px;
+  --np-radius-lg: 8px;
+
+  /* Transitions */
+  --np-transition-fast: 120ms ease;
+  --np-transition-normal: 200ms ease;
+  --np-transition-slow: 300ms ease;
+}
