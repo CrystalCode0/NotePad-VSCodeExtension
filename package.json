@@ -2,7 +2,7 @@
   "name": "notepad-vscode",
   "displayName": "NotePad",
   "description": "Code-aware notes for developers — rich editor, code snapshots, templates, smart tags, all inside a beautiful sidebar UI",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "CrystalCode0",
   "engines": {
     "vscode": "^1.85.0"
