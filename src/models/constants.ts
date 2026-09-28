@@ -17,6 +17,7 @@ export const COMMANDS = {
   FILTER_BY_TAG: 'notepad.filterByTag',
   REFRESH_EXPLORER: 'notepad.refreshExplorer',
   FOCUS_MODE: 'notepad.focusMode',
+  CHECK_FOR_UPDATES: 'notepad.checkForUpdates',
 } as const;
 
 // ─── View IDs ─────────────────────────────────────────────────

@@ -100,6 +100,11 @@
       {
         "command": "notepad.focusMode",
         "title": "NotePad: Toggle Focus Mode"
+      },
+      {
+        "command": "notepad.checkForUpdates",
+        "title": "NotePad: Check for Updates",
+        "icon": "$(cloud-download)"
       }
     ],
     "keybindings": [
@@ -117,6 +122,11 @@
     "configuration": {
       "title": "NotePad",
       "properties": {
+        "notepad.autoCheckUpdates": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically check for NotePad extension updates from GitHub Releases on startup"
+        },
         "notepad.autoSaveDelay": {
           "type": "number",
           "default": 1000,

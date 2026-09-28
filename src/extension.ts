@@ -13,6 +13,7 @@ import { SnapshotService } from './services/snapshotService';
 import { TagService } from './services/tagService';
 import { SearchService } from './services/searchService';
 import { TimelineService } from './services/timelineService';
+import { UpdateService } from './services/updateService';
 import { MessageHandler } from './handlers/messageHandler';
 import { COMMANDS } from './models/constants';
 import { toISOString } from './utils/dateUtils';
@@ -27,10 +28,29 @@ let snapshotService: SnapshotService;
 let tagService: TagService;
 let searchService: SearchService;
 let timelineService: TimelineService;
+let updateService: UpdateService;
 let focusModeTimer: NodeJS.Timeout | null = null;
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('[NotePad] Extension activating...');
+
+  // ─── Initialize Update Service ───────────────────────────
+  const currentVersion = context.extension?.packageJSON?.version || '0.1.0';
+  updateService = new UpdateService(currentVersion);
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(COMMANDS.CHECK_FOR_UPDATES, () => {
+      updateService.checkForUpdates(true);
+    })
+  );
+
+  // Background update check on startup (delayed 4 seconds)
+  const autoCheck = vscode.workspace.getConfiguration('notepad').get<boolean>('autoCheckUpdates', true);
+  if (autoCheck) {
+    setTimeout(() => {
+      updateService.checkForUpdates(false).catch(() => {});
+    }, 4000);
+  }
 
   // ─── Guard: Require a workspace ──────────────────────────
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
