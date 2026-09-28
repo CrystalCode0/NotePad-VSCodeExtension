@@ -68,6 +68,7 @@ export async function activate(context: vscode.ExtensionContext) {
   configService = new ConfigService(workspacePath);
   templateService = new TemplateService(context.extensionUri, workspacePath, configService);
   snapshotService = new SnapshotService(workspacePath, configService);
+  snapshotService.registerListeners(context);
   tagService = new TagService(configService, storageService);
   searchService = new SearchService(storageService);
   timelineService = new TimelineService(storageService, configService);
@@ -294,16 +295,51 @@ export async function activate(context: vscode.ExtensionContext) {
   // 6. Insert Code Snapshot from Selection
   context.subscriptions.push(
     vscode.commands.registerCommand(COMMANDS.INSERT_SNAPSHOT, async () => {
-      const lastOpened = await configService.getLastOpened();
-      if (!lastOpened) {
-        vscode.window.showWarningMessage('NotePad: Open a note first to attach a code snapshot.');
-        return;
+      let targetNote: string | undefined = noteEditorProvider.getActiveOrVisibleNotePath() || undefined;
+      if (!targetNote) {
+        targetNote = await configService.getLastOpened();
       }
 
-      const snapshot = await snapshotService.captureActiveSelection(lastOpened);
+      if (!targetNote) {
+        // Collect existing notes if no note was active
+        const notes = await storageService.getTree();
+        const flatNotes: { label: string; path: string }[] = [];
+        const collectNotes = (nodes: import('./models/types').TreeNode[]) => {
+          for (const n of nodes) {
+            if (n.type === 'note') {
+              flatNotes.push({ label: `📝 ${n.name}`, path: n.path });
+            } else if (n.children) {
+              collectNotes(n.children);
+            }
+          }
+        };
+        collectNotes(notes);
+
+        if (flatNotes.length === 0) {
+          const createChoice = await vscode.window.showInformationMessage(
+            'NotePad: No notes exist yet. Create a note to attach this code snapshot?',
+            'Create Note'
+          );
+          if (createChoice === 'Create Note') {
+            await vscode.commands.executeCommand(COMMANDS.CREATE_NOTE);
+          }
+          return;
+        }
+
+        const picked = await vscode.window.showQuickPick(flatNotes, {
+          placeHolder: 'Select a note to attach this code snapshot to:',
+        });
+        if (!picked) return;
+        targetNote = picked.path;
+      }
+
+      const snapshot = await snapshotService.captureActiveSelection(targetNote);
       if (snapshot) {
+        // Open and reveal the note editor so the user sees the captured snapshot right away
+        await noteEditorProvider.openNote(targetNote);
+        noteEditorProvider.insertSnapshot(targetNote, snapshot);
         vscode.window.showInformationMessage(
-          `📸 Code snapshot captured (${snapshot.sourceFile}:${snapshot.startLine}-${snapshot.endLine})!`
+          `📸 Code snapshot captured (${snapshot.sourceFile}: L${snapshot.startLine}-L${snapshot.endLine})!`
         );
       }
     })

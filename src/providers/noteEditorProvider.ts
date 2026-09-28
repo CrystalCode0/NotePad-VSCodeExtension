@@ -14,6 +14,8 @@ import { toISOString } from '../utils/dateUtils';
 export class NoteEditorProvider {
   /** Map of note path → active WebviewPanel */
   private panels: Map<string, vscode.WebviewPanel> = new Map();
+  /** Most recently active or focused note path */
+  private activeNotePath: string | null = null;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -24,12 +26,50 @@ export class NoteEditorProvider {
   ) {}
 
   /**
+   * Get currently active or visible note path if any panel is open.
+   */
+  getActiveOrVisibleNotePath(): string | null {
+    if (this.activeNotePath && this.panels.has(this.activeNotePath)) {
+      return this.activeNotePath;
+    }
+    for (const [path, panel] of this.panels.entries()) {
+      if (panel.visible) {
+        return path;
+      }
+    }
+    return this.panels.keys().next().value || null;
+  }
+
+  /**
+   * Insert a captured code snapshot into the open webview panel for a note.
+   */
+  insertSnapshot(notePath: string, snapshot: import('../models/types').CodeSnapshot): void {
+    const norm = (p: string) => p.replace(/^[\\\/]/, '').replace(/\\/g, '/');
+    for (const [pathKey, panel] of this.panels.entries()) {
+      if (norm(pathKey) === norm(notePath)) {
+        panel.webview.postMessage({
+          type: 'CODE_SNAPSHOT_DATA',
+          snapshot,
+        });
+      }
+    }
+  }
+
+  /**
    * Open a note in a WebviewPanel editor tab.
    */
   async openNote(notePath: string): Promise<void> {
+    const norm = (p: string) => p.replace(/^[\\\/]/, '').replace(/\\/g, '/');
     // If already open, reveal it
-    const existing = this.panels.get(notePath);
+    let existing: vscode.WebviewPanel | undefined;
+    for (const [pathKey, panel] of this.panels.entries()) {
+      if (norm(pathKey) === norm(notePath)) {
+        existing = panel;
+        break;
+      }
+    }
     if (existing) {
+      this.activeNotePath = notePath;
       existing.reveal(vscode.ViewColumn.One);
       return;
     }
@@ -42,10 +82,13 @@ export class NoteEditorProvider {
     // Filter snapshots that belong to this note
     const noteSnapshots: Record<string, import('../models/types').CodeSnapshot> = {};
     for (const [id, snap] of Object.entries(allSnapshots)) {
-      if (snap.noteFile === notePath) {
+      if (norm(snap.noteFile) === norm(notePath)) {
         noteSnapshots[id] = snap;
       }
     }
+
+    // Resolve live line ranges so snapshots reflect current source state
+    const resolvedSnapshots = await this.snapshotService.resolveSnapshotsForNote(noteSnapshots);
 
     // Extract display name from path
     const fileName = notePath.split('/').pop() || 'Note';
@@ -64,6 +107,13 @@ export class NoteEditorProvider {
     );
 
     this.panels.set(notePath, panel);
+    this.activeNotePath = notePath;
+
+    panel.onDidChangeViewState((e) => {
+      if (e.webviewPanel.active) {
+        this.activeNotePath = notePath;
+      }
+    });
 
     // Set the HTML content
     panel.webview.html = this.getEditorContent(panel.webview, notePath);
@@ -79,7 +129,7 @@ export class NoteEditorProvider {
                 path: notePath,
                 content,
                 metadata,
-                snapshots: noteSnapshots,
+                snapshots: resolvedSnapshots,
               });
               break;
             }
@@ -112,7 +162,7 @@ export class NoteEditorProvider {
                   snapshot,
                 });
                 vscode.window.showInformationMessage(
-                  `📸 Captured snapshot from ${snapshot.sourceFile}:${snapshot.startLine}-${snapshot.endLine}`
+                  `📸 Captured snapshot from ${snapshot.sourceFile}: L${snapshot.startLine}-L${snapshot.endLine}`
                 );
               }
               break;
@@ -130,6 +180,10 @@ export class NoteEditorProvider {
                 snapshotId: message.snapshotId,
                 hasDrifted: result.hasDrifted,
                 currentCode: result.currentCode,
+                startLine: result.startLine,
+                endLine: result.endLine,
+                status: result.status,
+                message: result.message,
               });
               break;
             }
@@ -198,6 +252,9 @@ export class NoteEditorProvider {
     // Clean up when panel is closed
     panel.onDidDispose(() => {
       this.panels.delete(notePath);
+      if (this.activeNotePath === notePath) {
+        this.activeNotePath = this.panels.keys().next().value || null;
+      }
     });
 
     // Update last opened

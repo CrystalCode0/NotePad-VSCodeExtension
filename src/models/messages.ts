@@ -51,7 +51,7 @@ export type EditorToExtensionMessage =
 export type ExtensionToEditorMessage =
   | { type: 'NOTE_LOADED'; path: string; content: string; metadata: import('./types').NoteMetadata | null; snapshots?: Record<string, import('./types').CodeSnapshot> }
   | { type: 'CODE_SNAPSHOT_DATA'; snapshot: import('./types').CodeSnapshot }
-  | { type: 'SNAPSHOT_DRIFT_STATUS'; snapshotId: string; hasDrifted: boolean; currentCode?: string }
+  | { type: 'SNAPSHOT_DRIFT_STATUS'; snapshotId: string; hasDrifted: boolean; currentCode?: string; startLine?: number; endLine?: number; status?: string; message?: string }
   | { type: 'SNAPSHOT_UPDATED'; snapshot: import('./types').CodeSnapshot }
   | { type: 'SNAPSHOT_DELETED'; snapshotId: string }
   | { type: 'SAVE_CONFIRMED'; path: string }

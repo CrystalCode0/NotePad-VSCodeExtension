@@ -7,11 +7,40 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+
+// Mock vscode module before importing services that depend on it
+const mockVscode = {
+  window: {
+    activeTextEditor: undefined,
+    visibleTextEditors: [],
+    onDidChangeActiveTextEditor: () => ({ dispose: () => {} }),
+    onDidChangeTextEditorSelection: () => ({ dispose: () => {} }),
+    showWarningMessage: () => {},
+    showErrorMessage: () => {},
+    showInformationMessage: () => {},
+  },
+  workspace: {
+    textDocuments: [],
+  },
+  Position: class { constructor(public line: number, public character: number) {} },
+  Range: class { constructor(public start: any, public end: any) {} },
+  Selection: class { constructor(public start: any, public end: any) {} },
+};
+// @ts-ignore
+const Module = require('module');
+const origRequire = Module.prototype.require;
+// @ts-ignore
+Module.prototype.require = function (id: string) {
+  if (id === 'vscode') return mockVscode;
+  return origRequire.apply(this, arguments);
+};
+
 import { StorageService } from '../src/services/storageService';
 import { ConfigService } from '../src/services/configService';
 import { TagService } from '../src/services/tagService';
 import { SearchService } from '../src/services/searchService';
 import { TimelineService } from '../src/services/timelineService';
+import { SnapshotService } from '../src/services/snapshotService';
 
 async function runTests() {
   console.log('🚀 Starting NotePad Services Test Suite...\n');
@@ -26,6 +55,7 @@ async function runTests() {
     const tagService = new TagService(configService, storageService);
     const searchService = new SearchService(storageService);
     const timelineService = new TimelineService(storageService, configService);
+    const snapshotService = new SnapshotService(tempDir, configService);
 
     // ─── Test 1: StorageService - Directory & Tree ───
     console.log('🧪 Test 1: StorageService - Initialize and tree building...');
@@ -122,7 +152,98 @@ async function runTests() {
     assert.strictEqual(timeline[0].bucket, 'Today');
     console.log('   ✅ Test 7 Passed!');
 
-    console.log('\n🎉 ALL 7 UNIT TESTS PASSED SUCCESSFULLY! 100% OPERATIONAL.\n');
+    // ─── Test 8: SnapshotService - Live File, Line Shift & Drift Detection ───
+    console.log('🧪 Test 8: SnapshotService - Live file, line shift & drift detection...');
+    
+    // Create a mock source code file
+    const srcDir = path.join(tempDir, 'src');
+    fs.mkdirSync(srcDir, { recursive: true });
+    const codeFilePath = path.join(srcDir, 'math.ts');
+    const initialCode = [
+      '// Math Utility Library',
+      'export function add(a: number, b: number): number {',
+      '  return a + b;',
+      '}',
+      '',
+      'export function multiply(x: number, y: number): number {',
+      '  const result = x * y;',
+      '  return result;',
+      '}',
+    ].join('\n');
+    fs.writeFileSync(codeFilePath, initialCode, 'utf-8');
+
+    // Create a snapshot targeting 'multiply' function (lines 6-9)
+    const targetCode = [
+      'export function multiply(x: number, y: number): number {',
+      '  const result = x * y;',
+      '  return result;',
+      '}',
+    ].join('\n');
+    const snapId = 'snap_live_test_1';
+    await configService.addSnapshot({
+      id: snapId,
+      noteFile: '/Engineering/architecture.md',
+      sourceFile: 'src/math.ts',
+      startLine: 6,
+      endLine: 9,
+      capturedCode: targetCode,
+      capturedAt: new Date().toISOString(),
+      sourceHash: snapshotService.computeHash(targetCode),
+    });
+
+    // 8a. Verify initial code: should match perfectly
+    const verifyInitial = await snapshotService.checkCodeDrift(snapId);
+    assert.strictEqual(verifyInitial.hasDrifted, false, 'Initial snapshot should not have drifted');
+    assert.strictEqual(verifyInitial.status, 'perfect', 'Initial snapshot status should be perfect');
+    assert.strictEqual(verifyInitial.startLine, 6);
+    assert.strictEqual(verifyInitial.endLine, 9);
+
+    // 8b. Simulate inserting lines above (live line range shift)
+    const shiftedCode = [
+      '// Line 1 comments',
+      '// Line 2 comments',
+      '// Line 3 comments',
+      '// Line 4 comments',
+      '// Line 5 comments',
+      ...initialCode.split('\n'),
+    ].join('\n');
+    fs.writeFileSync(codeFilePath, shiftedCode, 'utf-8');
+
+    // Check drift: code is intact but shifted 5 lines down (now lines 11-14)
+    const verifyShift = await snapshotService.checkCodeDrift(snapId);
+    assert.strictEqual(verifyShift.hasDrifted, false, 'Shifted code should not count as drifted');
+    assert.strictEqual(verifyShift.status, 'shifted', 'Status should be shifted');
+    assert.strictEqual(verifyShift.startLine, 11, 'Start line should be updated to 11');
+    assert.strictEqual(verifyShift.endLine, 14, 'End line should be updated to 14');
+
+    // Verify snapshot config was updated with live line range
+    const updatedSnap = await configService.getSnapshot(snapId);
+    assert.strictEqual(updatedSnap?.startLine, 11);
+    assert.strictEqual(updatedSnap?.endLine, 14);
+
+    // 8c. Simulate code modification inside the function (drift detected)
+    const modifiedCode = shiftedCode.replace('const result = x * y;', 'const result = Math.imul(x, y);');
+    fs.writeFileSync(codeFilePath, modifiedCode, 'utf-8');
+
+    const verifyDrift = await snapshotService.checkCodeDrift(snapId);
+    assert.strictEqual(verifyDrift.hasDrifted, true, 'Modified code should be reported as drifted');
+    assert.strictEqual(verifyDrift.status, 'modified', 'Status should be modified');
+    assert.strictEqual(verifyDrift.startLine, 11);
+    assert.strictEqual(verifyDrift.endLine, 14);
+    assert.ok(verifyDrift.currentCode?.includes('Math.imul'));
+
+    // 8d. Test update snapshot from source
+    const refreshed = await snapshotService.updateSnapshotFromSource(snapId);
+    assert.ok(refreshed !== null);
+    assert.ok(refreshed?.capturedCode.includes('Math.imul'));
+
+    // 8e. Verify after update: now matches perfectly at new line range
+    const verifyAfterUpdate = await snapshotService.checkCodeDrift(snapId);
+    assert.strictEqual(verifyAfterUpdate.hasDrifted, false);
+    assert.strictEqual(verifyAfterUpdate.status, 'perfect');
+    console.log('   ✅ Test 8 Passed!');
+
+    console.log('\n🎉 ALL 8 UNIT TESTS PASSED SUCCESSFULLY! 100% OPERATIONAL.\n');
   } finally {
     // Clean up temporary workspace
     try {

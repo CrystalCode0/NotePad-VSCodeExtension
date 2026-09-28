@@ -107,6 +107,15 @@
         "icon": "$(cloud-download)"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "notepad.insertSnapshot",
+          "when": "editorHasSelection",
+          "group": "notepad"
+        }
+      ]
+    },
     "keybindings": [
       {
         "command": "notepad.quickCapture",
@@ -117,6 +126,12 @@
         "command": "notepad.createNote",
         "key": "ctrl+alt+n",
         "mac": "cmd+alt+n"
+      },
+      {
+        "command": "notepad.insertSnapshot",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "editorHasSelection"
       }
     ],
     "configuration": {

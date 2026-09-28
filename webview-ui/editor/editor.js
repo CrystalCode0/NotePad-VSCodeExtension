@@ -1496,17 +1496,26 @@
     let html = '';
 
     for (const snap of snapList) {
+      const codeLines = (snap.capturedCode || '').split(/\r?\n/);
+      const startNum = snap.startLine || 1;
+      const maxDigits = Math.max(2, String(startNum + codeLines.length).length);
+
+      const codeLinesHtml = codeLines.map((line, idx) => {
+        const lineNum = String(startNum + idx).padStart(maxDigits, ' ');
+        return `<div class="snapshot-code-line"><span class="snapshot-line-num">${lineNum}</span><span class="snapshot-line-text">${escapeHtml(line)}</span></div>`;
+      }).join('');
+
       html += `
         <div class="code-snapshot" id="snapshot-${snap.id}">
           <div class="code-snapshot-header">
-            <span>📸 <strong>${escapeHtml(snap.sourceFile)}</strong> : L${snap.startLine}-L${snap.endLine}</span>
+            <span class="snapshot-header-title">📸 <strong>${escapeHtml(snap.sourceFile)}</strong> <span class="snapshot-range-badge">: L${snap.startLine}-L${snap.endLine}</span></span>
             <div style="margin-left: auto; display: flex; gap: 8px;">
               <span class="snapshot-btn btn-jump" data-id="${snap.id}" title="Jump to file in editor">↗ Open Source</span>
               <span class="snapshot-btn btn-drift" data-id="${snap.id}" title="Check if code changed">🔍 Verify</span>
               <span class="snapshot-btn btn-delete" data-id="${snap.id}" title="Delete code snapshot">🗑️ Delete</span>
             </div>
           </div>
-          <div class="code-snapshot-body">${escapeHtml(snap.capturedCode)}</div>
+          <div class="code-snapshot-body">${codeLinesHtml}</div>
           <div class="code-snapshot-footer" id="snap-footer-${snap.id}" style="display: none;">
             <span class="code-snapshot-warning" id="snap-warning-${snap.id}"></span>
             <span class="snapshot-btn btn-update" data-id="${snap.id}" style="margin-left: auto; display: none;">↻ Update Snapshot</span>
@@ -1581,10 +1590,16 @@
         renderSnapshots();
 
         if (viewMode === 'rich') {
-          const codeEl = createCodeBlockElement('SNAPSHOT', `// Snapshot: ${snap.sourceFile}:${snap.startLine}-${snap.endLine}\n${snap.capturedCode}`);
-          richEditor.appendChild(codeEl);
+          const codeEl = createCodeBlockElement('SNAPSHOT', `// Snapshot: ${snap.sourceFile}: L${snap.startLine}-L${snap.endLine}\n${snap.capturedCode}`);
+          if (savedSelectionRange && richEditor.contains(savedSelectionRange.commonAncestorContainer)) {
+            savedSelectionRange.deleteContents();
+            savedSelectionRange.insertNode(codeEl);
+            savedSelectionRange.collapse(false);
+          } else {
+            richEditor.appendChild(codeEl);
+          }
         } else {
-          const codeBlock = `\n\`\`\`\n// Snapshot: ${snap.sourceFile}:${snap.startLine}-${snap.endLine}\n${snap.capturedCode}\n\`\`\`\n`;
+          const codeBlock = `\n\`\`\`\n// Snapshot: ${snap.sourceFile}: L${snap.startLine}-L${snap.endLine}\n${snap.capturedCode}\n\`\`\`\n`;
           const pos = textarea.selectionStart;
           replaceRange(pos, pos, codeBlock);
         }
@@ -1596,20 +1611,47 @@
       }
 
       case 'SNAPSHOT_DRIFT_STATUS': {
+        const snap = snapshots[message.snapshotId];
+        if (snap && message.startLine && message.endLine) {
+          snap.startLine = message.startLine;
+          snap.endLine = message.endLine;
+        }
+
         const footer = document.getElementById(`snap-footer-${message.snapshotId}`);
         const warning = document.getElementById(`snap-warning-${message.snapshotId}`);
         const updateBtn = footer ? footer.querySelector('.btn-update') : null;
         const driftBtn = document.querySelector(`.btn-drift[data-id="${message.snapshotId}"]`);
+        const headerBadge = document.querySelector(`#snapshot-${message.snapshotId} .snapshot-range-badge`);
 
         if (driftBtn) driftBtn.textContent = '🔍 Verify';
+        if (headerBadge && snap) {
+          headerBadge.textContent = `: L${snap.startLine}-L${snap.endLine}`;
+        }
+
+        // If line range shifted, update line numbers in snapshot body
+        if (snap && message.startLine) {
+          const bodyEl = document.querySelector(`#snapshot-${message.snapshotId} .code-snapshot-body`);
+          if (bodyEl) {
+            const lineNums = bodyEl.querySelectorAll('.snapshot-line-num');
+            const maxDigits = Math.max(2, String(snap.startLine + lineNums.length).length);
+            lineNums.forEach((el, idx) => {
+              el.textContent = String(snap.startLine + idx).padStart(maxDigits, ' ');
+            });
+          }
+        }
 
         if (footer && warning) {
           footer.style.display = 'flex';
           if (message.hasDrifted) {
-            warning.textContent = '⚠️ Code changed in source file since snapshot!';
+            warning.textContent = message.message || '⚠️ Code changed in source file since snapshot!';
+            warning.style.color = 'var(--np-warning)';
             if (updateBtn) updateBtn.style.display = 'inline';
+          } else if (message.status === 'shifted') {
+            warning.textContent = message.message || `⚡ Line range shifted to L${snap ? snap.startLine : message.startLine}-L${snap ? snap.endLine : message.endLine} (intact)`;
+            warning.style.color = 'var(--np-accent)';
+            if (updateBtn) updateBtn.style.display = 'none';
           } else {
-            warning.textContent = '✅ Code matches source file perfectly.';
+            warning.textContent = message.message || `✅ Code matches source file perfectly (L${snap ? snap.startLine : message.startLine}-L${snap ? snap.endLine : message.endLine}).`;
             warning.style.color = 'var(--np-success)';
             if (updateBtn) updateBtn.style.display = 'none';
           }
@@ -1621,6 +1663,13 @@
         const updated = message.snapshot;
         snapshots[updated.id] = updated;
         renderSnapshots();
+        const footer = document.getElementById(`snap-footer-${updated.id}`);
+        const warning = document.getElementById(`snap-warning-${updated.id}`);
+        if (footer && warning) {
+          footer.style.display = 'flex';
+          warning.textContent = `✅ Snapshot updated to match source file (L${updated.startLine}-L${updated.endLine}).`;
+          warning.style.color = 'var(--np-success)';
+        }
         break;
       }
 
